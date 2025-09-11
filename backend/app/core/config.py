@@ -3,7 +3,8 @@ Application configuration settings using Pydantic for environment variable manag
 Handles database, JWT, AI API, and other core settings.
 """
 from pydantic_settings import BaseSettings
-from typing import Optional
+from pydantic import validator
+from typing import Optional, List, Union
 import os
 from dotenv import load_dotenv
 
@@ -32,16 +33,29 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-3.5-turbo"
     
     # CORS - Add your production URLs here
-    allowed_origins: list = [
+    # allowed_origins: list = [
+    #     "http://localhost:3000", 
+    #     "http://127.0.0.1:3000",
+    #     "http://localhost:5173",
+    #     "http://127.0.0.1:5173",
+    #     # Add your production frontend URLs here
+    #     # "https://your-frontend-domain.onrender.com",
+    #     # "https://your-custom-domain.com"
+    # ]
+    allowed_origins: Union[str, List[str]] = [
         "http://localhost:3000", 
         "http://127.0.0.1:3000",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
-        # Add your production frontend URLs here
-        # "https://your-frontend-domain.onrender.com",
-        # "https://your-custom-domain.com"
     ]
     
+    @validator('allowed_origins', pre=True)
+    def parse_cors_origins(cls, v):
+        """Parse CORS origins from string or list format."""
+        if isinstance(v, str):
+             # Split by comma and clean whitespace
+            return [origin.strip() for origin in v.split(',') if origin.strip()]
+        return v
     # Pagination
     default_page_size: int = 10
     max_page_size: int = 100
