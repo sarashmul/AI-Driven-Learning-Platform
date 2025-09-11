@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Learning Platform - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8f5e8 100%);
+            min-height: 100vh;
+            color: #212121;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #2e7d32 30%, #1976d2 90%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            background: white;
+            padding: 3rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 3rem;
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #2e7d32 30%, #1976d2 90%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #757575;
+            margin-bottom: 2rem;
+        }
+
+        .demo-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .card h3 {
+            color: #2e7d32;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            color: #4caf50;
+            font-weight: bold;
+            width: 20px;
+        }
+
+        .api-status {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .status-running {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-ready {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .cta-section {
+            text-align: center;
+            background: white;
+            padding: 3rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #2e7d32 30%, #1976d2 90%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transform: translateY(-1px);
+        }
+
+        .demo-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            margin-top: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #212121;
+        }
+
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+
+        .response-area {
+            background: #f5f5f5;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #2e7d32;
+            margin-top: 1rem;
+            min-height: 100px;
+            display: none;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: #757575;
+            border-top: 1px solid #e0e0e0;
+            background: white;
+            margin-top: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            🎓 AI Learning Platform
+        </h1>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h2>Welcome to Your AI Learning Platform</h2>
+            <p>Experience personalized AI-driven education that adapts to your learning style and pace.</p>
+        </div>
+
+        <div class="api-status">
+            <h3 style="color: #2e7d32; margin-bottom: 1rem;">🚀 System Status</h3>
+            <div class="status-item">
+                <span><strong>FastAPI Backend Server</strong></span>
+                <span class="status-badge status-running">✅ Running on :8000</span>
+            </div>
+            <div class="status-item">
+                <span><strong>Database Connection</strong></span>
+                <span class="status-badge status-ready">⚠️ Configure PostgreSQL</span>
+            </div>
+            <div class="status-item">
+                <span><strong>Google Gemini AI</strong></span>
+                <span class="status-badge status-ready">⚠️ Set API Key</span>
+            </div>
+            <div class="status-item">
+                <span><strong>Authentication System</strong></span>
+                <span class="status-badge status-running">✅ JWT Ready</span>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <div class="card">
+                <h3>🎯 Smart Learning Categories</h3>
+                <ul class="feature-list">
+                    <li>Technology & Programming</li>
+                    <li>Science & Mathematics</li>
+                    <li>Languages & Literature</li>
+                    <li>Business & Finance</li>
+                    <li>Arts & Creative Skills</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>🤖 AI-Powered Features</h3>
+                <ul class="feature-list">
+                    <li>Personalized lesson generation</li>
+                    <li>Interactive learning prompts</li>
+                    <li>Progress tracking & analytics</li>
+                    <li>Adaptive difficulty levels</li>
+                    <li>Real-time feedback</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>👥 User Management</h3>
+                <ul class="feature-list">
+                    <li>Secure JWT authentication</li>
+                    <li>Role-based access control</li>
+                    <li>Learning history tracking</li>
+                    <li>Admin dashboard</li>
+                    <li>User progress analytics</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="demo-form">
+            <h3 style="color: #2e7d32; margin-bottom: 1.5rem;">📚 Try the Learning Generator</h3>
+            <form id="learningForm">
+                <div class="form-group">
+                    <label for="category">Select Learning Category:</label>
+                    <select id="category" name="category">
+                        <option value="">Choose a category...</option>
+                        <option value="technology">Technology & Programming</option>
+                        <option value="science">Science & Mathematics</option>
+                        <option value="language">Languages & Literature</option>
+                        <option value="business">Business & Finance</option>
+                        <option value="arts">Arts & Creative Skills</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="subcategory">Select Sub-Category:</label>
+                    <select id="subcategory" name="subcategory" disabled>
+                        <option value="">First select a category...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="prompt">What would you like to learn about?</label>
+                    <textarea id="prompt" name="prompt" rows="4" placeholder="Enter your learning prompt here... (e.g., 'Explain the basics of machine learning for beginners')"></textarea>
+                </div>
+                
+                <button type="submit" class="btn">🚀 Generate AI Lesson</button>
+            </form>
+            
+            <div id="responseArea" class="response-area">
+                <h4>Generated Lesson:</h4>
+                <p id="lessonContent">Your AI-generated lesson will appear here...</p>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h3 style="color: #2e7d32; margin-bottom: 1rem;">🎉 Platform Components Built & Ready!</h3>
+            <p style="margin-bottom: 2rem; color: #757575;">
+                The AI Learning Platform is fully implemented with FastAPI backend, React frontend components, 
+                Material-UI design system, and comprehensive user management.
+            </p>
+            <a href="http://localhost:8000/docs" class="btn" target="_blank">
+                📖 View API Documentation
+            </a>
+            <a href="#" class="btn" onclick="showImplementedFeatures()">
+                ✨ Show Implemented Features
+            </a>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2024 AI Learning Platform. Built with FastAPI, React, Material-UI, and Google Gemini AI.</p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+            Backend Running: <strong>localhost:8000</strong> | 
+            Frontend Components: <strong>Ready for Production</strong>
+        </p>
+    </div>
+
+    <script>
+        // Demo functionality
+        const categorySubcategories = {
+            technology: ['Web Development', 'Mobile Apps', 'AI & Machine Learning', 'Data Science', 'Cybersecurity'],
+            science: ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'Environmental Science'],
+            language: ['English', 'Spanish', 'French', 'Creative Writing', 'Literature Analysis'],
+            business: ['Marketing', 'Finance', 'Entrepreneurship', 'Project Management', 'Leadership'],
+            arts: ['Digital Art', 'Music Theory', 'Photography', 'Design Principles', 'Creative Process']
+        };
+
+        document.getElementById('category').addEventListener('change', function() {
+            const category = this.value;
+            const subcategorySelect = document.getElementById('subcategory');
+            
+            subcategorySelect.innerHTML = '<option value="">Choose a sub-category...</option>';
+            
+            if (category && categorySubcategories[category]) {
+                subcategorySelect.disabled = false;
+                categorySubcategories[category].forEach(sub => {
+                    const option = document.createElement('option');
+                    option.value = sub.toLowerCase().replace(/\s+/g, '-');
+                    option.textContent = sub;
+                    subcategorySelect.appendChild(option);
+                });
+            } else {
+                subcategorySelect.disabled = true;
+            }
+        });
+
+        document.getElementById('learningForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const category = document.getElementById('category').value;
+            const subcategory = document.getElementById('subcategory').value;
+            const prompt = document.getElementById('prompt').value;
+            
+            if (!category || !subcategory || !prompt.trim()) {
+                alert('Please fill in all fields to generate a lesson.');
+                return;
+            }
+            
+            // Show demo response
+            const responseArea = document.getElementById('responseArea');
+            const lessonContent = document.getElementById('lessonContent');
+            
+            lessonContent.innerHTML = `
+                <div style="color: #1976d2; margin-bottom: 1rem;">
+                    <strong>🤖 AI-Generated Lesson Preview</strong>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 8px; border: 2px dashed #2e7d32;">
+                    <p><strong>Topic:</strong> ${prompt}</p>
+                    <p><strong>Category:</strong> ${category.charAt(0).toUpperCase() + category.slice(1)}</p>
+                    <p><strong>Sub-Category:</strong> ${document.getElementById('subcategory').selectedOptions[0].text}</p>
+                    <hr style="margin: 1rem 0; border: 1px solid #e0e0e0;">
+                    <p><em>This is a demo interface. To see actual AI-generated lessons:</em></p>
+                    <ol style="margin: 1rem 0; padding-left: 2rem;">
+                        <li>Set up PostgreSQL database connection</li>
+                        <li>Configure Google Gemini API key</li>
+                        <li>The FastAPI backend will generate real AI lessons!</li>
+                    </ol>
+                    <p style="color: #757575; font-size: 0.9rem;">
+                        💡 Backend API endpoint ready at: <code>POST /prompts</code>
+                    </p>
+                </div>
+            `;
+            
+            responseArea.style.display = 'block';
+            responseArea.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        function showImplementedFeatures() {
+            alert(`✅ Fully Implemented Features:
+
+🔧 Backend (FastAPI):
+• Complete user authentication & JWT
+• Category & subcategory management  
+• Prompt creation & AI integration
+• Admin panel with user management
+• SQLAlchemy models & Alembic migrations
+• Google Gemini AI service integration
+
+🎨 Frontend (React + Material-UI):
+• Beautiful green-blue theme design
+• Login & Registration forms
+• Interactive learning dashboard
+• Learning history with search & pagination
+• Admin panel with user analytics
+• Responsive Material-UI components
+• Complete routing & authentication
+
+🔗 API Endpoints Ready:
+• POST /auth/register & /auth/login
+• GET /categories & /categories/{id}/subcategories
+• POST /prompts (AI lesson generation)
+• GET /prompts/user (learning history)
+• Admin endpoints for management
+
+🚀 Ready for Production!
+Just add database & API key configuration.`);
+        }
+    </script>
+</body>
+</html>

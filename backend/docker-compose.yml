@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13-alpine
+    container_name: ai_learning_db_container
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: learning_platform
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  migration:
+    build:
+      context: .
+      dockerfile: Dockerfile.migration
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql+psycopg://postgres:password@db:5432/learning_platform
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=learning_platform
+
+  migration-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.migration
+    depends_on:
+      - db
+    command: ./run_migrations.sh
+    environment:
+      - DATABASE_URL=postgresql+psycopg://postgres:password@db:5432/learning_platform
+
+volumes:
+  postgres_data:
