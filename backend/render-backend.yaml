@@ -22,8 +22,6 @@ services:
         fromDatabase:
           name: ai-learning-db
           property: connectionString
-      - key: SECRET_KEY
-        generateValue: true
       - key: DEBUG
         value: false
       - key: ALGORITHM
