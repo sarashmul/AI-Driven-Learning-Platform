@@ -18,6 +18,20 @@ router = APIRouter()
 ai_service = AIService()
 
 
+@router.get("/my-stats")
+async def get_my_stats(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get current user's learning statistics."""
+    try:
+        total_lessons = db.query(Prompt).filter(Prompt.user_id == current_user.id).count()
+        return {"total_lessons": total_lessons}
+    except Exception as e:
+        print(f"❌ ERROR getting stats: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get statistics")
+
+
 @router.get("/my-history", response_model=List[PromptWithRelations])
 async def get_my_history(
     current_user: User = Depends(get_current_user),

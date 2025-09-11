@@ -28,6 +28,7 @@ import {
 } from '@mui/icons-material';
 import { categoriesAPI, promptsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import LessonDisplay from '../components/LessonDisplay';
 
 const Dashboard = () => {
@@ -43,12 +44,15 @@ const Dashboard = () => {
   const [success, setSuccess] = useState('');
   const [recentPrompts, setRecentPrompts] = useState([]);
   const [selectedHistoricalLesson, setSelectedHistoricalLesson] = useState('');
+  const [totalLessons, setTotalLessons] = useState(0);
 
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadCategories();
     loadRecentPrompts();
+    loadStats();
   }, []);
 
   useEffect(() => {
@@ -83,6 +87,15 @@ const Dashboard = () => {
       setRecentPrompts(response.data.slice(0, 3)); // Get latest 3 prompts
     } catch (error) {
       console.error('Failed to load recent prompts:', error);
+    }
+  };
+
+  const loadStats = async () => {
+    try {
+      const response = await promptsAPI.getStats();
+      setTotalLessons(response.data.total_lessons);
+    } catch (error) {
+      console.error('Failed to load stats:', error);
     }
   };
 
@@ -139,6 +152,7 @@ const Dashboard = () => {
       
       // Reload recent prompts
       loadRecentPrompts();
+      loadStats();
     } catch (error) {
       const message = error.response?.data?.detail || 'Failed to generate lesson';
       setError(message);
@@ -306,7 +320,7 @@ const Dashboard = () => {
                   Total Lessons
                 </Typography>
                 <Chip 
-                  label={recentPrompts.length} 
+                  label={totalLessons} 
                   color="primary" 
                   size="small"
                 />
@@ -391,6 +405,23 @@ const Dashboard = () => {
                 <Typography variant="body2" color="text.secondary">
                   No recent lessons yet. Create your first lesson above!
                 </Typography>
+              )}
+              
+              {totalLessons > 3 && (
+                <Box sx={{ mt: 2, textAlign: 'center' }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => navigate('/history')}
+                    sx={{
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      fontWeight: 500,
+                    }}
+                  >
+                    View All History ({totalLessons} lessons)
+                  </Button>
+                </Box>
               )}
             </CardContent>
           </Card>

@@ -24,6 +24,7 @@ import {
   AutoAwesome,
   CalendarToday,
   Category,
+  Schedule,
 } from '@mui/icons-material';
 import { promptsAPI } from '../services/api';
 import LessonDisplay from '../components/LessonDisplay';
@@ -36,7 +37,8 @@ const LearningHistory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [expandedPrompt, setExpandedPrompt] = useState(null);
-  const itemsPerPage = 6;
+  const [selectedHistoricalLesson, setSelectedHistoricalLesson] = useState('');
+  const itemsPerPage = 3;
 
   useEffect(() => {
     loadPrompts();
@@ -83,6 +85,11 @@ const LearningHistory = () => {
 
   const handleExpandPrompt = (promptId) => {
     setExpandedPrompt(expandedPrompt === promptId ? null : promptId);
+  };
+
+  const handleHistoricalLessonClick = (prompt) => {
+    setSelectedHistoricalLesson(prompt.response);
+    setExpandedPrompt(null); // Close any expanded prompt
   };
 
   const formatDate = (dateString) => {
@@ -175,69 +182,54 @@ const LearningHistory = () => {
         </Paper>
       ) : (
         <>
-          <Grid container spacing={3}>
+          <Box sx={{ maxWidth: '800px', mx: 'auto' }}>
             {paginatedPrompts.map((prompt) => (
-              <Grid item xs={12} key={prompt.id}>
-                <Card elevation={2} sx={{ '&:hover': { elevation: 4 } }}>
-                  <CardContent>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={8}>
-                        <Box sx={{ display: 'flex', alignItems: 'start', gap: 2, mb: 2 }}>
-                          <AutoAwesome sx={{ color: 'primary.main', mt: 0.5 }} />
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 500, mb: 1 }}>
-                              {prompt.prompt_text}
-                            </Typography>
-                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-                              <Chip
-                                icon={<Category />}
-                                label={prompt.category?.name}
-                                color="primary"
-                                variant="outlined"
-                                size="small"
-                              />
-                              <Chip
-                                label={prompt.sub_category?.name}
-                                color="secondary"
-                                variant="outlined"
-                                size="small"
-                              />
-                            </Box>
-                          </Box>
-                        </Box>
-                      </Grid>
-                      
-                      <Grid item xs={12} md={4}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <CalendarToday sx={{ fontSize: 16, color: 'text.secondary' }} />
-                            <Typography variant="body2" color="text.secondary">
-                              {formatDate(prompt.created_at)}
-                            </Typography>
-                          </Box>
-                          <IconButton
-                            onClick={() => handleExpandPrompt(prompt.id)}
-                            sx={{ ml: 1 }}
-                          >
-                            {expandedPrompt === prompt.id ? <ExpandLess /> : <ExpandMore />}
-                          </IconButton>
-                        </Box>
-                      </Grid>
-                    </Grid>
+              <Box 
+                key={prompt.id}
+                sx={{ 
+                  mb: 2,
+                  p: 3,
+                  border: '1px solid #e0e0e0',
+                  borderRadius: 2,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  backgroundColor: 'white',
+                  '&:hover': {
+                    backgroundColor: 'primary.50',
+                    borderColor: 'primary.main',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(25, 118, 210, 0.15)'
+                  }
+                }}
+                onClick={() => handleHistoricalLessonClick(prompt)}
+              >
+                  {/* Category and Subcategory first */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <Category sx={{ fontSize: 14, mr: 0.5, color: 'primary.main' }} />
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'primary.main' }}>
+                      {prompt.category_name || 'Unknown Category'}
+                    </Typography>
+                    <Typography variant="caption" sx={{ mx: 0.5, color: 'text.secondary' }}>
+                      →
+                    </Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 500, color: 'secondary.main' }}>
+                      {prompt.sub_category_name || 'Unknown Subcategory'}
+                    </Typography>
+                  </Box>
 
-                    <Collapse in={expandedPrompt === prompt.id} timeout="auto" unmountOnExit>
-                      <Box sx={{ mt: 2 }}>
-                        <LessonDisplay 
-                          content={prompt.ai_response} 
-                          title="Historical Lesson"
-                        />
-                      </Box>
-                    </Collapse>
-                  </CardContent>
-                </Card>
-              </Grid>
+                  {/* Then the prompt text */}
+                  <Typography variant="body2" sx={{ fontWeight: 500, mb: 2, color: 'text.primary', fontSize: '0.95rem' }}>
+                    {prompt.prompt ? prompt.prompt.substring(0, 100) + '...' : 'No content'}
+                  </Typography>
+                  
+                  {/* Date at the bottom */}
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Schedule sx={{ fontSize: 12, mr: 0.5 }} />
+                    {new Date(prompt.created_at).toLocaleDateString()}
+                  </Typography>
+                </Box>
             ))}
-          </Grid>
+          </Box>
 
           {/* Pagination */}
           {totalPages > 1 && (
@@ -254,6 +246,16 @@ const LearningHistory = () => {
             </Box>
           )}
         </>
+      )}
+
+      {/* Display selected historical lesson */}
+      {selectedHistoricalLesson && (
+        <Box sx={{ mt: 4 }}>
+          <LessonDisplay 
+            content={selectedHistoricalLesson} 
+            title="Historical Lesson"
+          />
+        </Box>
       )}
     </Container>
   );

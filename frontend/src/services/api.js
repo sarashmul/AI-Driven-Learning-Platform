@@ -62,6 +62,7 @@ export const promptsAPI = {
       sub_category_id: subCategoryId // אופציונלי
     }),
   getUserPrompts: () => api.get('/api/prompts/my-history'),
+  getStats: () => api.get('/api/prompts/my-stats'),
   getById: (id) => api.get(`/api/prompts/${id}`),
 };
 
