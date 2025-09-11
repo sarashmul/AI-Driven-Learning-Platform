@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from ..core.database import get_db
-from ..core.auth import get_current_user
+from ..core.auth import get_current_user, get_current_admin_user
 from ..models.user import User
 from ..models.prompt import Prompt
 from ..models.category import Category, SubCategory
@@ -16,6 +16,90 @@ from ..core.exceptions import AIServiceException
 
 router = APIRouter()
 ai_service = AIService()
+
+
+@router.get("/admin/all-history", response_model=List[PromptWithRelations])
+async def get_all_history_admin(
+    admin_user: User = Depends(get_current_admin_user),
+    db: Session = Depends(get_db)
+):
+    """Get all users' prompt history (admin only)."""
+    try:
+        print(f"🔍 DEBUG: Admin {admin_user.email} requesting all history")
+        
+        # שליפה עם joins לקטגוריות ומשתמשים
+        prompts_query = db.query(
+            Prompt, 
+            Category.name.label('category_name'),
+            SubCategory.name.label('sub_category_name'),
+            User.name.label('user_name'),
+            User.email.label('user_email')
+        ).outerjoin(
+            Category, Prompt.category_id == Category.id
+        ).outerjoin(
+            SubCategory, Prompt.sub_category_id == SubCategory.id
+        ).join(
+            User, Prompt.user_id == User.id
+        ).order_by(Prompt.created_at.desc()).limit(100)  # limit 100 for performance
+        
+        results = prompts_query.all()
+        print(f"🔍 DEBUG: Found {len(results)} prompts for admin view")
+        
+        # אם אין prompts, נחזיר רשימה ריקה
+        if not results:
+            print("🔍 DEBUG: No prompts found, returning empty list")
+            return []
+        
+        # יצירת תגובה עם פרטי הקטגוריות והמשתמשים
+        result = []
+        for prompt, category_name, sub_category_name, user_name, user_email in results:
+            prompt_data = {
+                "id": prompt.id,
+                "user_id": prompt.user_id,
+                "prompt": prompt.prompt,
+                "category_id": prompt.category_id,
+                "sub_category_id": prompt.sub_category_id,
+                "response": prompt.response,
+                "ai_model": prompt.ai_model,
+                "response_time_ms": prompt.response_time_ms,
+                "created_at": prompt.created_at,
+                "user_name": user_name,
+                "user_email": user_email,
+                "category_name": category_name,
+                "sub_category_name": sub_category_name
+            }
+            result.append(PromptWithRelations(**prompt_data))
+        
+        print(f"🔍 DEBUG: Successfully processed {len(result)} prompts for admin")
+        return result
+        
+    except Exception as e:
+        print(f"❌ DEBUG: Error in get_all_history_admin: {e}")
+        # במקרה של שגיאה, נחזיר רשימה ריקה
+        return []
+
+
+@router.get("/admin/stats")
+async def get_admin_stats(
+    admin_user: User = Depends(get_current_admin_user),
+    db: Session = Depends(get_db)
+):
+    """Get platform statistics (admin only)."""
+    try:
+        total_prompts = db.query(Prompt).count()
+        total_users = db.query(User).count()
+        total_categories = db.query(Category).count()
+        total_subcategories = db.query(SubCategory).count()
+        
+        return {
+            "total_prompts": total_prompts,
+            "total_users": total_users,
+            "total_categories": total_categories,
+            "total_subcategories": total_subcategories
+        }
+    except Exception as e:
+        print(f"❌ ERROR getting admin stats: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get statistics")
 
 
 @router.get("/my-stats")

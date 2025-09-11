@@ -1,9 +1,10 @@
-# Environment files
+# Environment files - CRITICAL: Never commit these!
 .env
 *.env
 .env.local
 .env.production
 .env.test
+.env.staging
 
 # Python
 __pycache__/
@@ -48,6 +49,7 @@ Thumbs.db
 # Database
 *.db
 *.sqlite3
+learning_platform.db
 
 # Logs
 *.log
@@ -58,3 +60,28 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.npm
+.yarn-integrity
+
+# Frontend build
+dist/
+build/
+
+# Docker volumes
+postgres_data/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Security - Never commit these!
+*.pem
+*.key
+*.crt
+id_rsa*
+*.p12
+*.jks
+
+# Additional security
+*.key
+secrets.json

@@ -23,11 +23,12 @@ import {
   Category,
   TrendingUp,
 } from '@mui/icons-material';
-import { adminAPI } from '../services/api';
+import { adminAPI, promptsAPI } from '../services/api';
 
 const AdminPanel = () => {
   const [users, setUsers] = useState([]);
   const [prompts, setPrompts] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -38,13 +39,16 @@ const AdminPanel = () => {
   const loadAdminData = async () => {
     try {
       setLoading(true);
-      const [usersResponse, promptsResponse] = await Promise.all([
+      const [usersResponse, promptsResponse, statsResponse] = await Promise.all([
         adminAPI.getUsers(),
-        adminAPI.getPrompts(),
+        promptsAPI.getAllPromptsAdmin(),
+        promptsAPI.getAdminStats(),
       ]);
       setUsers(usersResponse.data);
       setPrompts(promptsResponse.data);
+      setStats(statsResponse.data);
     } catch (error) {
+      console.error('Admin data loading error:', error);
       setError('Failed to load admin data');
     } finally {
       setLoading(false);
@@ -96,7 +100,7 @@ const AdminPanel = () => {
             <CardContent sx={{ textAlign: 'center' }}>
               <People sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
               <Typography variant="h4" sx={{ fontWeight: 600, color: 'primary.main' }}>
-                {users.length}
+                {stats?.total_users || users.length}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Total Users
@@ -110,7 +114,7 @@ const AdminPanel = () => {
             <CardContent sx={{ textAlign: 'center' }}>
               <AutoAwesome sx={{ fontSize: 40, color: 'secondary.main', mb: 1 }} />
               <Typography variant="h4" sx={{ fontWeight: 600, color: 'secondary.main' }}>
-                {prompts.length}
+                {stats?.total_prompts || prompts.length}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Total Lessons
@@ -124,7 +128,7 @@ const AdminPanel = () => {
             <CardContent sx={{ textAlign: 'center' }}>
               <TrendingUp sx={{ fontSize: 40, color: 'success.main', mb: 1 }} />
               <Typography variant="h4" sx={{ fontWeight: 600, color: 'success.main' }}>
-                {users.filter(user => user.role === 'admin').length}
+                {stats?.admin_users || users.filter(user => user.role === 'admin').length}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Admin Users
@@ -138,7 +142,7 @@ const AdminPanel = () => {
             <CardContent sx={{ textAlign: 'center' }}>
               <Category sx={{ fontSize: 40, color: 'warning.main', mb: 1 }} />
               <Typography variant="h4" sx={{ fontWeight: 600, color: 'warning.main' }}>
-                {new Set(prompts.map(p => p.category_id)).size}
+                {stats?.total_categories || new Set(prompts.map(p => p.category_id)).size}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Active Categories
@@ -167,9 +171,9 @@ const AdminPanel = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {users.slice(0, 5).map((user) => (
+                    {users && users.length > 0 ? users.slice(0, 5).map((user) => (
                       <TableRow key={user.id}>
-                        <TableCell>{user.full_name}</TableCell>
+                        <TableCell>{user.name}</TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell>
                           <Chip
@@ -180,7 +184,11 @@ const AdminPanel = () => {
                         </TableCell>
                         <TableCell>{formatDate(user.created_at)}</TableCell>
                       </TableRow>
-                    ))}
+                    )) : (
+                      <TableRow>
+                        <TableCell colSpan={4} align="center">No users found</TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -206,15 +214,15 @@ const AdminPanel = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {prompts.slice(0, 5).map((prompt) => (
+                    {prompts && prompts.length > 0 ? prompts.slice(0, 5).map((prompt) => (
                       <TableRow key={prompt.id}>
-                        <TableCell>{prompt.user?.full_name}</TableCell>
+                        <TableCell>{prompt.user_name || prompt.user_email}</TableCell>
                         <TableCell>
-                          {prompt.prompt_text.substring(0, 30)}...
+                          {prompt.prompt.substring(0, 30)}...
                         </TableCell>
                         <TableCell>
                           <Chip
-                            label={prompt.category?.name}
+                            label={prompt.category_name || 'No Category'}
                             color="primary"
                             variant="outlined"
                             size="small"
@@ -222,7 +230,11 @@ const AdminPanel = () => {
                         </TableCell>
                         <TableCell>{formatDate(prompt.created_at)}</TableCell>
                       </TableRow>
-                    ))}
+                    )) : (
+                      <TableRow>
+                        <TableCell colSpan={4} align="center">No lessons found</TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </TableContainer>

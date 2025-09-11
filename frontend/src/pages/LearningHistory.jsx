@@ -38,20 +38,46 @@ const LearningHistory = () => {
   const [page, setPage] = useState(1);
   const [expandedPrompt, setExpandedPrompt] = useState(null);
   const [selectedHistoricalLesson, setSelectedHistoricalLesson] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminStats, setAdminStats] = useState(null);
   const itemsPerPage = 3;
 
   useEffect(() => {
     loadPrompts();
+    checkAdminStatus();
   }, []);
 
-  useEffect(() => {
-    filterPrompts();
-  }, [prompts, searchTerm]);
+  const checkAdminStatus = () => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isUserAdmin = user.role === 'admin';
+    setIsAdmin(isUserAdmin);
+    
+    if (isUserAdmin) {
+      loadAdminStats();
+    }
+  };
+
+  const loadAdminStats = async () => {
+    try {
+      const response = await promptsAPI.getAdminStats();
+      setAdminStats(response.data);
+    } catch (error) {
+      console.error('Failed to load admin stats:', error);
+    }
+  };
 
   const loadPrompts = async () => {
     try {
       setLoading(true);
-      const response = await promptsAPI.getUserPrompts();
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      let response;
+      if (user.role === 'admin') {
+        response = await promptsAPI.getAllPromptsAdmin();
+      } else {
+        response = await promptsAPI.getUserPrompts();
+      }
+      
       setPrompts(response.data);
     } catch (error) {
       setError('Failed to load learning history');
@@ -60,14 +86,20 @@ const LearningHistory = () => {
     }
   };
 
+  useEffect(() => {
+    filterPrompts();
+  }, [prompts, searchTerm]);
+
   const filterPrompts = () => {
     if (!searchTerm.trim()) {
       setFilteredPrompts(prompts);
     } else {
       const filtered = prompts.filter(prompt =>
-        prompt.prompt_text.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        prompt.category?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        prompt.sub_category?.name.toLowerCase().includes(searchTerm.toLowerCase())
+        prompt.prompt.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (prompt.category_name && prompt.category_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (prompt.sub_category_name && prompt.sub_category_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (isAdmin && prompt.user_name && prompt.user_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (isAdmin && prompt.user_email && prompt.user_email.toLowerCase().includes(searchTerm.toLowerCase()))
       );
       setFilteredPrompts(filtered);
     }
@@ -125,11 +157,14 @@ const LearningHistory = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <History sx={{ mr: 2, color: 'primary.main', fontSize: 32 }} />
           <Typography variant="h3" component="h1" sx={{ fontWeight: 600 }}>
-            Learning History
+            {isAdmin ? 'All Users Learning History (Admin)' : 'Learning History'}
           </Typography>
         </Box>
         <Typography variant="h6" color="text.secondary">
-          Review your AI-generated lessons and track your learning progress
+          {isAdmin 
+            ? 'View and manage all users\' AI-generated lessons and learning progress'
+            : 'Review your AI-generated lessons and track your learning progress'
+          }
         </Typography>
       </Box>
 
@@ -141,10 +176,10 @@ const LearningHistory = () => {
 
       {/* Search and Stats */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={isAdmin ? 6 : 8}>
           <TextField
             fullWidth
-            placeholder="Search your lessons..."
+            placeholder={isAdmin ? "Search lessons by content, category, or user..." : "Search your lessons..."}
             value={searchTerm}
             onChange={handleSearchChange}
             InputProps={{
@@ -157,16 +192,52 @@ const LearningHistory = () => {
             sx={{ backgroundColor: 'white' }}
           />
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
-            <Typography variant="h4" color="primary.main" sx={{ fontWeight: 600 }}>
-              {prompts.length}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Total Lessons Generated
-            </Typography>
-          </Paper>
-        </Grid>
+        
+        {isAdmin && adminStats ? (
+          <>
+            <Grid item xs={6} md={2}>
+              <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
+                <Typography variant="h4" color="primary.main" sx={{ fontWeight: 600 }}>
+                  {adminStats.total_prompts}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Total Lessons
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={6} md={2}>
+              <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
+                <Typography variant="h4" color="secondary.main" sx={{ fontWeight: 600 }}>
+                  {adminStats.total_users}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Total Users
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={6} md={2}>
+              <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
+                <Typography variant="h4" color="success.main" sx={{ fontWeight: 600 }}>
+                  {adminStats.total_categories}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Categories
+                </Typography>
+              </Paper>
+            </Grid>
+          </>
+        ) : (
+          <Grid item xs={12} md={4}>
+            <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
+              <Typography variant="h4" color="primary.main" sx={{ fontWeight: 600 }}>
+                {prompts.length}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Total Lessons Generated
+              </Typography>
+            </Paper>
+          </Grid>
+        )}
       </Grid>
 
       {/* Learning History Cards */}
@@ -203,7 +274,19 @@ const LearningHistory = () => {
                 }}
                 onClick={() => handleHistoricalLessonClick(prompt)}
               >
-                  {/* Category and Subcategory first */}
+                  {/* User info for admin */}
+                  {isAdmin && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, p: 1, backgroundColor: 'grey.50', borderRadius: 1 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, color: 'info.main', mr: 1 }}>
+                        User:
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 500, color: 'text.primary' }}>
+                        {prompt.user_name} ({prompt.user_email})
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {/* Category and Subcategory */}
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <Category sx={{ fontSize: 14, mr: 0.5, color: 'primary.main' }} />
                     <Typography variant="caption" sx={{ fontWeight: 600, color: 'primary.main' }}>

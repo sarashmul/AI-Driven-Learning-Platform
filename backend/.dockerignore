@@ -1,0 +1,69 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Environment files
+.env
+.env.*
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pytest_cache
+.coverage
+
+# Virtual environments
+.venv
+venv
+ENV
+env
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+*.db
+*.sqlite3
+learning_platform.db
+
+# Logs
+*.log
+logs
+
+# Development files
+test_*.py
+*_test.py
+tests/
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Build artifacts
+build/
+dist/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Alembic backup
+alembic_backup/
+
+# Development tools
+requirements_temp.txt

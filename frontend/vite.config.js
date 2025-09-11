@@ -9,6 +9,18 @@ export default defineConfig({
     host: true,
     cors: true
   },
+  build: {
+    outDir: 'dist',
+    sourcemap: false, // Disable source maps in production for security
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          mui: ['@mui/material', '@mui/icons-material']
+        }
+      }
+    }
+  },
   define: {
     global: 'globalThis',
   }

@@ -1,0 +1,40 @@
+# Minimal production requirements for faster builds
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+starlette==0.27.0
+
+# Database
+sqlalchemy==2.0.43
+psycopg==3.2.10
+psycopg-binary==3.2.10
+alembic==1.13.1
+greenlet==3.2.4
+
+# Authentication & Security
+python-jose==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+bcrypt==4.3.0
+cryptography==45.0.7
+
+# AI Integration
+openai==1.107.1
+google-ai-generativelanguage==0.4.0
+google-api-core==2.25.1
+google-auth==2.40.3
+
+# Environment & Configuration
+python-dotenv==1.0.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Email validation
+email-validator==2.1.0
+
+# HTTP clients
+httpx==0.25.2
+requests==2.32.5
+
+# CORS
+fastapi-cors==0.0.6
