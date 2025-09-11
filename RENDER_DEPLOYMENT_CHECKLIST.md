@@ -1,9 +1,5 @@
 # 🚀 Render.com Deployment Checklist
 
-## 📋 Important: Use Separate Config Files
-- Backend: Use `backend/render-backend.yaml` 
-- Frontend: Use `frontend/render-frontend.yaml`
-
 ## Before Deployment:
 
 ### 1. Environment Variables
