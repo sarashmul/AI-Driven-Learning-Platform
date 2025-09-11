@@ -24,9 +24,11 @@ import {
   Send,
   History,
   TrendingUp,
+  Schedule,
 } from '@mui/icons-material';
 import { categoriesAPI, promptsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import LessonDisplay from '../components/LessonDisplay';
 
 const Dashboard = () => {
   const [categories, setCategories] = useState([]);
@@ -40,6 +42,7 @@ const Dashboard = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [recentPrompts, setRecentPrompts] = useState([]);
+  const [selectedHistoricalLesson, setSelectedHistoricalLesson] = useState('');
 
   const { user } = useAuth();
 
@@ -76,9 +79,10 @@ const Dashboard = () => {
   const loadRecentPrompts = async () => {
     try {
       const response = await promptsAPI.getUserPrompts();
+      console.log('🔍 DEBUG: Recent prompts response:', response.data);
       setRecentPrompts(response.data.slice(0, 3)); // Get latest 3 prompts
     } catch (error) {
-      console.error('Failed to load recent prompts');
+      console.error('Failed to load recent prompts:', error);
     }
   };
 
@@ -97,6 +101,12 @@ const Dashboard = () => {
     setError('');
   };
 
+  const handleHistoricalLessonClick = (lesson) => {
+    setSelectedHistoricalLesson(lesson.response);
+    setGeneratedLesson(''); // Clear current lesson
+    setSuccess(`Displaying lesson: "${lesson.prompt.substring(0, 50)}..."`);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -109,6 +119,7 @@ const Dashboard = () => {
     setError('');
     setSuccess('');
     setGeneratedLesson('');
+    setSelectedHistoricalLesson(''); // Clear historical lesson
 
     try {
       const response = await promptsAPI.create(
@@ -143,7 +154,7 @@ const Dashboard = () => {
           AI Learning Dashboard
         </Typography>
         <Typography variant="h6" color="text.secondary">
-          Welcome back, {user?.full_name}! Ready to learn something new today?
+          Welcome back, {user?.name}! Ready to learn something new today?
         </Typography>
       </Box>
 
@@ -250,31 +261,30 @@ const Dashboard = () => {
 
               {/* Generated Lesson Display */}
               {generatedLesson && (
-                <Box sx={{ mt: 4 }}>
-                  <Divider sx={{ mb: 3 }} />
-                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                    Your Generated Lesson
-                  </Typography>
-                  <Paper 
-                    elevation={1} 
-                    sx={{ 
-                      p: 3, 
-                      backgroundColor: 'grey.50',
-                      borderLeft: 4,
-                      borderColor: 'primary.main',
-                    }}
-                  >
-                    <Typography 
-                      variant="body1" 
-                      sx={{ 
-                        lineHeight: 1.8,
-                        whiteSpace: 'pre-wrap',
+                <LessonDisplay content={generatedLesson} />
+              )}
+
+              {/* Historical Lesson Display */}
+              {selectedHistoricalLesson && !generatedLesson && (
+                <>
+                  <Box sx={{ mt: 2, mb: 2, textAlign: 'center' }}>
+                    <Button 
+                      variant="outlined" 
+                      size="small"
+                      onClick={() => {
+                        setSelectedHistoricalLesson('');
+                        setSuccess('');
                       }}
+                      sx={{ borderRadius: 20 }}
                     >
-                      {generatedLesson}
-                    </Typography>
-                  </Paper>
-                </Box>
+                      ✕ Close Historical Lesson
+                    </Button>
+                  </Box>
+                  <LessonDisplay 
+                    content={selectedHistoricalLesson} 
+                    title="Historical Lesson"
+                  />
+                </>
               )}
             </CardContent>
           </Card>
@@ -324,18 +334,59 @@ const Dashboard = () => {
                 </Typography>
               </Box>
               
+              <Typography variant="caption" sx={{ mb: 2, display: 'block', color: 'text.secondary' }}>
+                💡 Click on any lesson below to view it again
+              </Typography>
+              
               {recentPrompts.length > 0 ? (
-                recentPrompts.map((prompt, index) => (
-                  <Box key={prompt.id} sx={{ mb: 2 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                      {prompt.prompt ? prompt.prompt.substring(0, 60) + '...' : 'No content'}
+                recentPrompts.map((prompt, index) => {
+                  console.log('🔍 DEBUG: Rendering prompt:', prompt);
+                  return (
+                  <Box 
+                    key={prompt.id} 
+                    sx={{ 
+                      mb: 2,
+                      p: 2,
+                      border: '1px solid #e0e0e0',
+                      borderRadius: 2,
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        backgroundColor: 'primary.50',
+                        borderColor: 'primary.main',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 12px rgba(25, 118, 210, 0.15)'
+                      }
+                    }}
+                    onClick={() => handleHistoricalLessonClick(prompt)}
+                  >
+                    {/* Category and Subcategory first */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Category sx={{ fontSize: 14, mr: 0.5, color: 'primary.main' }} />
+                      <Typography variant="caption" sx={{ fontWeight: 600, color: 'primary.main' }}>
+                        {prompt.category_name || 'Unknown Category'}
+                      </Typography>
+                      <Typography variant="caption" sx={{ mx: 0.5, color: 'text.secondary' }}>
+                        →
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 500, color: 'secondary.main' }}>
+                        {prompt.sub_category_name || 'Unknown Subcategory'}
+                      </Typography>
+                    </Box>
+
+                    {/* Then the prompt text */}
+                    <Typography variant="body2" sx={{ fontWeight: 500, mb: 1, color: 'text.primary' }}>
+                      {prompt.prompt ? prompt.prompt.substring(0, 55) + '...' : 'No content'}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    
+                    {/* Date at the bottom */}
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Schedule sx={{ fontSize: 12, mr: 0.5 }} />
                       {new Date(prompt.created_at).toLocaleDateString()}
                     </Typography>
-                    {index < recentPrompts.length - 1 && <Divider sx={{ mt: 1 }} />}
                   </Box>
-                ))
+                  );
+                })
               ) : (
                 <Typography variant="body2" color="text.secondary">
                   No recent lessons yet. Create your first lesson above!

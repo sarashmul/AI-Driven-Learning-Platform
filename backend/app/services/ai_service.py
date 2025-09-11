@@ -84,14 +84,24 @@ class AIService:
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are an expert tutor who creates comprehensive, educational lessons. Provide clear, well-structured explanations with examples and practical applications."
+                        "content": """You are an expert tutor who creates comprehensive, detailed educational content. Create in-depth lessons with rich content and examples.
+
+Please provide extensive, detailed explanations with:
+- Clear headings for different topics
+- Detailed explanations with examples
+- Code examples where relevant (formatted properly)
+- Multiple practical examples
+- Real-world applications
+- Tips and best practices
+
+Make the content comprehensive and educational. Use markdown formatting for better structure."""
                     },
                     {
                         "role": "user",
                         "content": enhanced_prompt
                     }
                 ],
-                max_tokens=2000,
+                max_tokens=3000,
                 temperature=0.7
             )
             
@@ -160,14 +170,15 @@ class AIService:
         enhanced_parts.extend([
             f"User Request: {user_prompt}",
             "",
-            "Please provide a structured lesson that includes:",
-            "1. A clear introduction to the topic",
-            "2. Key concepts and explanations",
-            "3. Practical examples or applications",
-            "4. Summary of main points",
-            "5. Suggested next steps for further learning",
+            "Please provide a comprehensive, detailed lesson with rich content:",
+            "- Include extensive explanations and multiple examples",
+            "- Provide practical code examples where relevant",
+            "- Add real-world applications and use cases", 
+            "- Include tips, best practices, and common pitfalls",
+            "- Make the content thorough and educational",
+            "- Use clear headings and proper formatting",
             "",
-            "Make the content engaging, educational, and appropriate for the specified category and context."
+            "Create content that is detailed, informative, and helps the learner gain deep understanding of the topic."
         ])
         
         return "\n".join(enhanced_parts)

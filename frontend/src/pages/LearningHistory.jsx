@@ -26,6 +26,7 @@ import {
   Category,
 } from '@mui/icons-material';
 import { promptsAPI } from '../services/api';
+import LessonDisplay from '../components/LessonDisplay';
 
 const LearningHistory = () => {
   const [prompts, setPrompts] = useState([]);
@@ -225,30 +226,11 @@ const LearningHistory = () => {
                     </Grid>
 
                     <Collapse in={expandedPrompt === prompt.id} timeout="auto" unmountOnExit>
-                      <Divider sx={{ my: 2 }} />
                       <Box sx={{ mt: 2 }}>
-                        <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
-                          AI Generated Lesson:
-                        </Typography>
-                        <Paper 
-                          elevation={0} 
-                          sx={{ 
-                            p: 2, 
-                            backgroundColor: 'grey.50',
-                            borderLeft: 4,
-                            borderColor: 'primary.main',
-                          }}
-                        >
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
-                              lineHeight: 1.6,
-                              whiteSpace: 'pre-wrap',
-                            }}
-                          >
-                            {prompt.ai_response}
-                          </Typography>
-                        </Paper>
+                        <LessonDisplay 
+                          content={prompt.ai_response} 
+                          title="Historical Lesson"
+                        />
                       </Box>
                     </Collapse>
                   </CardContent>

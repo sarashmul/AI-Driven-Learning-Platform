@@ -10,7 +10,7 @@ from ..core.auth import get_current_user
 from ..models.user import User
 from ..models.prompt import Prompt
 from ..models.category import Category, SubCategory
-from ..schemas.prompt import PromptResponse, PromptCreate
+from ..schemas.prompt import PromptResponse, PromptCreate, PromptWithRelations
 from ..services.ai_service import AIService
 from ..core.exceptions import AIServiceException
 
@@ -18,7 +18,7 @@ router = APIRouter()
 ai_service = AIService()
 
 
-@router.get("/my-history", response_model=List[PromptResponse])
+@router.get("/my-history", response_model=List[PromptWithRelations])
 async def get_my_history(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -26,19 +26,50 @@ async def get_my_history(
     """Get current user's prompt history."""
     try:
         print(f"🔍 DEBUG: Getting history for user {current_user.id}")
-        prompts = db.query(Prompt).filter(
+        
+        # שליפה עם joins לקטגוריות
+        prompts_query = db.query(
+            Prompt, 
+            Category.name.label('category_name'),
+            SubCategory.name.label('sub_category_name')
+        ).outerjoin(
+            Category, Prompt.category_id == Category.id
+        ).outerjoin(
+            SubCategory, Prompt.sub_category_id == SubCategory.id
+        ).filter(
             Prompt.user_id == current_user.id
-        ).order_by(Prompt.created_at.desc()).limit(20).all()
+        ).order_by(Prompt.created_at.desc()).limit(20)
         
-        print(f"🔍 DEBUG: Found {len(prompts)} prompts")
+        results = prompts_query.all()
+        print(f"🔍 DEBUG: Found {len(results)} prompts")
         
-        # אם אין prompts, נחזיר רשימה ריקה במקום לזרוק שגיאה
-        if not prompts:
+        # אם אין prompts, נחזיר רשימה ריקה
+        if not results:
             print("🔍 DEBUG: No prompts found, returning empty list")
             return []
         
-        result = [PromptResponse.model_validate(prompt) for prompt in prompts]
+        # יצירת תגובה עם פרטי הקטגוריות
+        result = []
+        for prompt, category_name, sub_category_name in results:
+            prompt_data = {
+                "id": prompt.id,
+                "user_id": prompt.user_id,
+                "prompt": prompt.prompt,
+                "category_id": prompt.category_id,
+                "sub_category_id": prompt.sub_category_id,
+                "response": prompt.response,
+                "ai_model": prompt.ai_model,
+                "response_time_ms": prompt.response_time_ms,
+                "created_at": prompt.created_at,
+                "user_name": current_user.name,
+                "user_email": current_user.email,
+                "category_name": category_name,
+                "sub_category_name": sub_category_name
+            }
+            result.append(PromptWithRelations(**prompt_data))
+        
         print(f"🔍 DEBUG: Successfully processed {len(result)} prompts")
+        print(f"🔍 DEBUG: First prompt categories: {result[0].category_name if result else 'None'}, {result[0].sub_category_name if result else 'None'}")
         return result
         
     except Exception as e:

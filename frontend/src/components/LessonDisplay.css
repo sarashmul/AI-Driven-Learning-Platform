@@ -1,0 +1,125 @@
+/* LessonDisplay component styles */
+.lesson-display {
+  margin-top: 2rem;
+}
+
+/* Animation for lesson display */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lesson-display-animated {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Code block styling */
+.code-block {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  overflow-x: auto;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Header styling */
+.lesson-header {
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  color: white;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+}
+
+/* Content container */
+.lesson-content {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Typography improvements */
+.lesson-content h1,
+.lesson-content h2,
+.lesson-content h3,
+.lesson-content h4,
+.lesson-content h5,
+.lesson-content h6 {
+  color: #1976d2;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.lesson-content h1 {
+  font-size: 2rem;
+  border-bottom: 3px solid #1565c0;
+  padding-bottom: 0.75rem;
+  color: #1565c0;
+}
+
+.lesson-content h2 {
+  font-size: 1.5rem;
+  border-bottom: 2px solid #1976d2;
+  padding-bottom: 0.5rem;
+  color: #1976d2;
+}
+
+.lesson-content h3 {
+  font-size: 1.25rem;
+  border-bottom: 1px solid #9c27b0;
+  padding-bottom: 0.5rem;
+  color: #9c27b0;
+}
+
+.lesson-content h4,
+.lesson-content h5,
+.lesson-content h6 {
+  font-size: 1.1rem;
+  border-left: 4px solid #2196f3;
+  padding-left: 1rem;
+  color: #2196f3;
+  background-color: rgba(33, 150, 243, 0.05);
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+}
+
+.lesson-content p {
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+  text-align: justify;
+}
+
+.lesson-content ul,
+.lesson-content ol {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.lesson-content li {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .lesson-content {
+    padding: 1.5rem;
+  }
+  
+  .lesson-header {
+    padding: 1.5rem;
+  }
+}
