@@ -20,8 +20,8 @@ class Settings(BaseSettings):
     debug: bool = False
     
     # Database - PostgreSQL by default for production
-    database_url: str = "postgresql://postgres:password@localhost:5432/learning_platform"
-    
+    # database_url: str = "postgresql://postgres:password@localhost:5432/learning_platform"
+    database_url: str = "postgresql+psycopg://postgres:password@localhost:5432/learning_platform"
     # JWT Authentication
     secret_key: str = "CHANGE-THIS-IN-PRODUCTION-USE-A-SECURE-RANDOM-KEY"
     algorithm: str = "HS256"
