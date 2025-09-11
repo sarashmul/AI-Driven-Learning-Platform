@@ -19,9 +19,9 @@ class Settings(BaseSettings):
     app_name: str = "AI-Driven Learning Platform"
     debug: bool = False
     
-    # Database - PostgreSQL by default for production
-    # database_url: str = "postgresql://postgres:password@localhost:5432/learning_platform"
-    database_url: str = "postgresql+psycopg://postgres:password@localhost:5432/learning_platform"
+    # Database - PostgreSQL with psycopg3 for production
+    # Will use DATABASE_URL from environment variables (Render) or fallback to local
+    database_url: str = os.getenv("DATABASE_URL", "postgresql+psycopg://postgres:password@localhost:5433/learning_platform")
     # JWT Authentication
     secret_key: str = "CHANGE-THIS-IN-PRODUCTION-USE-A-SECURE-RANDOM-KEY"
     algorithm: str = "HS256"
@@ -55,6 +55,17 @@ class Settings(BaseSettings):
         if isinstance(v, str):
              # Split by comma and clean whitespace
             return [origin.strip() for origin in v.split(',') if origin.strip()]
+        return v
+    
+    @validator('database_url', pre=True)
+    def ensure_psycopg_format(cls, v):
+        """
+        Ensure database URL uses psycopg (not psycopg2) for SQLAlchemy compatibility.
+        Render provides postgresql:// but we need postgresql+psycopg:// for psycopg3.
+        """
+        if isinstance(v, str) and v.startswith('postgresql://'):
+            # Convert postgresql:// to postgresql+psycopg:// for SQLAlchemy
+            return v.replace('postgresql://', 'postgresql+psycopg://', 1)
         return v
     # Pagination
     default_page_size: int = 10
