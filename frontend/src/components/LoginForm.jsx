@@ -9,10 +9,12 @@ import {
   Alert,
   Link,
   CircularProgress,
+  Snackbar,
 } from '@mui/material';
 import { Login as LoginIcon } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { validateEmail, VALIDATION_MESSAGES } from '../utils/authValidation';
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({
@@ -20,7 +22,9 @@ const LoginForm = () => {
     password: '',
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
   
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuth();
@@ -32,22 +36,59 @@ const LoginForm = () => {
   }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
-    setError('');
+    
+    // Clear errors when user starts typing
+    if (error) setError('');
+    if (fieldErrors[name]) {
+      setFieldErrors({
+        ...fieldErrors,
+        [name]: '',
+      });
+    }
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    
+    // Email validation
+    if (!formData.email.trim()) {
+      errors.email = VALIDATION_MESSAGES.email_required;
+    } else if (!validateEmail(formData.email)) {
+      errors.email = VALIDATION_MESSAGES.email_invalid;
+    }
+    
+    // Password validation
+    if (!formData.password) {
+      errors.password = VALIDATION_MESSAGES.password_required;
+    }
+    
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setLoading(true);
     setError('');
+    setSuccess('');
 
     const result = await login(formData.email, formData.password);
     
     if (result.success) {
-      navigate('/dashboard');
+      setSuccess(result.message || 'Login successful!');
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1500);
     } else {
       setError(result.error);
     }
@@ -119,6 +160,8 @@ const LoginForm = () => {
               value={formData.email}
               onChange={handleChange}
               disabled={loading}
+              error={!!fieldErrors.email}
+              helperText={fieldErrors.email}
               sx={{ mb: 2 }}
             />
             
@@ -134,6 +177,8 @@ const LoginForm = () => {
               value={formData.password}
               onChange={handleChange}
               disabled={loading}
+              error={!!fieldErrors.password}
+              helperText={fieldErrors.password}
               sx={{ mb: 3 }}
             />
             
@@ -177,6 +222,22 @@ const LoginForm = () => {
             </Box>
           </Box>
         </Paper>
+        
+        {/* Success Snackbar */}
+        <Snackbar
+          open={!!success}
+          autoHideDuration={6000}
+          onClose={() => setSuccess('')}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert 
+            onClose={() => setSuccess('')} 
+            severity="success" 
+            sx={{ width: '100%' }}
+          >
+            {success}
+          </Alert>
+        </Snackbar>
       </Box>
     </Container>
   );

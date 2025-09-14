@@ -9,10 +9,17 @@ import {
   Alert,
   Link,
   CircularProgress,
+  Snackbar,
 } from '@mui/material';
 import { PersonAdd as RegisterIcon } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { 
+  validateEmail, 
+  validatePassword, 
+  validateName, 
+  VALIDATION_MESSAGES 
+} from '../utils/authValidation';
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -22,7 +29,9 @@ const RegisterForm = () => {
     confirmPassword: '',
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
   
   const navigate = useNavigate();
   const { register, isAuthenticated } = useAuth();
@@ -34,40 +43,82 @@ const RegisterForm = () => {
   }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
-    setError('');
+    
+    // Clear errors when user starts typing
+    if (error) setError('');
+    if (fieldErrors[name]) {
+      setFieldErrors({
+        ...fieldErrors,
+        [name]: '',
+      });
+    }
   };
 
   const validateForm = () => {
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return false;
+    const errors = {};
+    
+    // Name validation
+    const nameValidation = validateName(formData.name);
+    if (!nameValidation.isValid) {
+      errors.name = nameValidation.message;
     }
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return false;
+    
+    // Email validation
+    if (!formData.email.trim()) {
+      errors.email = VALIDATION_MESSAGES.email_required;
+    } else if (!validateEmail(formData.email)) {
+      errors.email = VALIDATION_MESSAGES.email_invalid;
     }
-    return true;
+    
+    // Password validation
+    if (!formData.password) {
+      errors.password = VALIDATION_MESSAGES.password_required;
+    } else {
+      const passwordValidation = validatePassword(formData.password);
+      if (!passwordValidation.isValid) {
+        if (!passwordValidation.requirements.minLength) {
+          errors.password = VALIDATION_MESSAGES.password_min_length;
+        } else {
+          errors.password = VALIDATION_MESSAGES.password_complexity;
+        }
+      }
+    }
+    
+    // Confirm password validation
+    if (!formData.confirmPassword) {
+      errors.confirmPassword = VALIDATION_MESSAGES.confirm_password_required;
+    } else if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = VALIDATION_MESSAGES.passwords_not_match;
+    }
+    
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
+    
     if (!validateForm()) {
-      setLoading(false);
       return;
     }
+    
+    setLoading(true);
+    setError('');
+    setSuccess('');
 
     const { confirmPassword, ...registerData } = formData;
     const result = await register(registerData);
     
     if (result.success) {
-      navigate('/dashboard');
+      setSuccess(result.message || 'Registration successful!');
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1500);
     } else {
       setError(result.error);
     }
@@ -139,6 +190,8 @@ const RegisterForm = () => {
               value={formData.name}
               onChange={handleChange}
               disabled={loading}
+              error={!!fieldErrors.name}
+              helperText={fieldErrors.name || 'Enter your name using English letters only'}
               sx={{ mb: 2 }}
             />
             
@@ -153,6 +206,8 @@ const RegisterForm = () => {
               value={formData.email}
               onChange={handleChange}
               disabled={loading}
+              error={!!fieldErrors.email}
+              helperText={fieldErrors.email}
               sx={{ mb: 2 }}
             />
             
@@ -168,6 +223,8 @@ const RegisterForm = () => {
               value={formData.password}
               onChange={handleChange}
               disabled={loading}
+              error={!!fieldErrors.password}
+              helperText={fieldErrors.password}
               sx={{ mb: 2 }}
             />
             
@@ -182,6 +239,8 @@ const RegisterForm = () => {
               value={formData.confirmPassword}
               onChange={handleChange}
               disabled={loading}
+              error={!!fieldErrors.confirmPassword}
+              helperText={fieldErrors.confirmPassword}
               sx={{ mb: 3 }}
             />
             
@@ -225,6 +284,22 @@ const RegisterForm = () => {
             </Box>
           </Box>
         </Paper>
+        
+        {/* Success Snackbar */}
+        <Snackbar
+          open={!!success}
+          autoHideDuration={6000}
+          onClose={() => setSuccess('')}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert 
+            onClose={() => setSuccess('')} 
+            severity="success" 
+            sx={{ width: '100%' }}
+          >
+            {success}
+          </Alert>
+        </Snackbar>
       </Box>
     </Container>
   );

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI, setAuthToken, setCurrentUser, getCurrentUser, getAuthToken } from '../services/api';
+import { getErrorMessage, AUTH_SUCCESS_MESSAGES } from '../utils/authValidation';
 
 const AuthContext = createContext();
 
@@ -53,9 +54,9 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(userData);
       setUser(userData);
       
-      return { success: true };
+      return { success: true, message: AUTH_SUCCESS_MESSAGES.login };
     } catch (error) {
-      const message = error.response?.data?.detail || 'Login failed';
+      const message = getErrorMessage(error, 'login');
       return { success: false, error: message };
     }
   };
@@ -69,21 +70,10 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(newUser);
       setUser(newUser);
       
-      return { success: true };
+      return { success: true, message: AUTH_SUCCESS_MESSAGES.register };
     } catch (error) {
       console.error('Registration error:', error);
-      let message = 'Registration failed';
-      
-      if (error.response?.data) {
-        if (error.response.data.detail) {
-          message = typeof error.response.data.detail === 'string' 
-            ? error.response.data.detail 
-            : 'Validation error - please check your input';
-        } else if (error.response.data.message) {
-          message = error.response.data.message;
-        }
-      }
-      
+      const message = getErrorMessage(error, 'register');
       return { success: false, error: message };
     }
   };
