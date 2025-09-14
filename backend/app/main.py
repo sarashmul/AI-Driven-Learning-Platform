@@ -49,6 +49,17 @@ async def lifespan(app: FastAPI):
         try:
             create_all_tables()
             logger.info("Database tables ready")
+            
+            # Initialize production data if needed
+            try:
+                from .utils.init_data import initialize_production_data
+                if initialize_production_data():
+                    logger.info("Production data initialized")
+                else:
+                    logger.warning("Some production data initialization failed")
+            except Exception as e:
+                logger.error(f"Failed to initialize production data: {e}")
+                
         except Exception as e:
             logger.error(f"Failed to create database tables: {e}")
     else:
