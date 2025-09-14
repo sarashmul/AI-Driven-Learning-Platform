@@ -5,18 +5,11 @@ Creates categories, admin user, and basic setup.
 import asyncio
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from passlib.context import CryptContext
 
 from ..core.database import SessionLocal
 from ..models.user import User
 from ..models.category import Category, SubCategory
-
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def hash_password(password: str) -> str:
-    """Hash a password for storing."""
-    return pwd_context.hash(password)
+from ..utils.security import hash_password
 
 def create_default_categories(db: Session) -> bool:
     """Create default categories and subcategories."""
@@ -99,9 +92,9 @@ def create_admin_user(db: Session) -> bool:
         print("👨‍💼 Creating admin user...")
         
         admin_user = User(
-            username="admin",
+            name="Admin User",
             email="admin@admin.com",
-            hashed_password=hash_password("admin123"),
+            password_hash=hash_password("admin123"),
             is_active=True,
             role="admin"
         )
