@@ -7,9 +7,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from passlib.context import CryptContext
 
-from .core.database import SessionLocal
-from .models.user import User
-from .models.category import Category, SubCategory
+from ..core.database import SessionLocal
+from ..models.user import User
+from ..models.category import Category, SubCategory
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
